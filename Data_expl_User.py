@@ -33,15 +33,17 @@ for u in Users_list :
         U_count[u]+=1
     else:
         U_count[u]=1
+        
 Users_count_hist=U_count.values()
+Users_count_hist = list(Users_count_hist)
 plt.hist(Users_count_hist,bins=300)
 plt.title('Histogramme representant le nombre de user \n en fonction des apparitions')
 plt.xlabel("Nombre d'apparitions")
 plt.ylabel("Nombre de users")
 plt.show()
 
-print("Nombre moyen de review par user : ",np.mean(list(Users_count_hist)))
-print("Nombre median de review par user : ",np.median(list(Users_count_hist)))
+print("Nombre moyen de review par user : ",np.mean(Users_count_hist))
+print("Nombre median de review par user : ",np.median(Users_count_hist))
 
 
 #Approche ou on compte le nombre d'occurence dans les datas par user
@@ -92,14 +94,15 @@ def plot_moy_user(Dict_line_user):
             P.append(moy_user(Dict_line_user[u],i))
         #plt.plot(P,marker='+')
         x = [i for i in range(len(P))]
-        x_note=[i for i in range(1,6)]
         plt.scatter(x,P,alpha=0.3,cmap=cm.Paired)
         plt.title("Moyenne de chaque note user pour "+Labels[i])
         plt.xlabel("User")
         plt.ylabel("Note sur 5")
         plt.show()
-    return
-#on remarque que beaucoup de user (509) on mis la note de 5.0 pour cette rubrique  overall(biais ?)
+    return 
+
+
+#on remarque que beaucoup de user (509) ont mis la note de 5.0 pour cette rubrique  overall(biais ?)
 
 
 def plot_sigma_user_all(Dict_line_user): #Tous users confondus
@@ -157,3 +160,38 @@ def plot_sigma_moy_user(Dict_line_user):
     return user_sig_tot
 
 #certaines prsonnes ont de grands ecarts sur leur moyenne (soit notent serieusement, soit notent negligemment)
+
+
+def plot_moy_user_histo(Dict_line_user):
+    tab = []
+    for i in valeurs_etudiees[1:]:
+        P=[]
+        for u in Users_l:
+            moy = moy_user(Dict_line_user[u],i)
+            if (moy>=1 and moy<=5) :    # très rarement on avait des "nan"
+                P.append(moy_user(Dict_line_user[u],i))
+        plt.hist(P,bins=10)
+        plt.title('Histogramme representant le nombre de user \n en fonction des apparitions')
+        plt.xlabel("Nombre d'apparitions")
+        plt.ylabel("Nombre de users")
+        plt.show()
+    return 
+    
+
+    
+plot_moy_user_histo(Dict_line_user)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
