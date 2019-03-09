@@ -63,3 +63,6 @@ def prediction(i,u,Datas):
     return ri_moy + riu/sim_abs
             
 #Bière la plus notée : '11757' avec 2444 avis
+#'csiewert' a noté 3 bières
+    
+print(prediction('11757','csiewert',Datas))
