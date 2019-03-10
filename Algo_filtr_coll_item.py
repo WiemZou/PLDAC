@@ -12,8 +12,8 @@ Datas=np.array(Data_csv)
 
 
 #récuperation des bières    
-Beers=[int(Datas[i][-1]) for i in range(len(Datas)-1)]
-
+Beers={Datas[i][-1]:Datas[i][10] for i in range(len(Datas)-1)}
+Beers_id=list(Beers.keys())
 #récuperation des utilisateurs
 Users_list=[Datas[i][6] for i in range(len(Datas))]
 Users = list(set(Users_list))
@@ -49,7 +49,7 @@ def calcul_similarite(i,j):
     return prod_scal/(norm_i*norm_j)
 
 
-def prediction(i,u,Datas):
+def prediction(i,u):
     Datas_item = preprocessing(Datas)
     ri_moy = np.mean(np.array(list(Datas_item[i].values())))
     riu = 0
@@ -65,4 +65,58 @@ def prediction(i,u,Datas):
 #Bière la plus notée : '11757' avec 2444 avis
 #'csiewert' a noté 3 bières
     
-print(prediction('11757','csiewert',Datas))
+print(prediction('11757','csiewert'))
+
+def prediction_u_infos(i,u_infos):
+    ri_moy = np.mean(np.array(list(Datas_item[i].values())))
+    riu = 0
+    sim_abs = 0
+    for v in u_infos:
+        k=list(Beers.keys())[list(Beers.values()).index(v)]
+        if (k!=i):
+            sim_ij = calcul_similarite(Datas_item[i],Datas_item[k])
+            riu += sim_ij*(u_infos[v]-ri_moy)
+            sim_abs += abs(sim_ij)
+            
+    return ri_moy + riu/sim_abs   
+ 
+u_infos={'Sausa Weizen':3.5,'Caldera Ginger Beer':1.5,'Amstel Light':3.3}
+print(prediction_u_infos('11757',u_infos))
+
+Datas_item = preprocessing(Datas)
+
+
+
+def reco_5_beers(user_infos):
+    pred=dict()
+    for beer in Beers:
+        p=prediction_u_infos(beer,user_infos)
+        if p>=1 and p<=5:
+            pred[beer]=p
+    pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)#pred.items() change le dictionnaire en list de couple (key,value), ensuite on trie cette liste selon les notes.
+    return pred[:5]
+
+
+pred = reco_5_beers(u_infos)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
