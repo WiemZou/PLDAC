@@ -74,12 +74,12 @@ def notes_predites(Datas_train,Datas_test):
 
 #list_tuples = notes_predites(Datas_train,Datas_test)
 
-def rmse(list_tuples):
-    rmse = 0
+def mse(list_tuples):
+    mse = 0
     for y1,y2 in list_tuples:
-        rmse += (y1-y2)**2
+        mse += (y1-y2)**2
     
-    return sqrt(rmse)/len(list_tuples)
+    return mse/len(list_tuples)
         
 tuples = [(1,1.5),(4,3.8),(3.5,3.9)]
-print(rmse(tuples))
+print(mse(tuples))
