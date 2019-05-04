@@ -137,7 +137,9 @@ class SignUp(Frame): #nouvel utilisateur
 class SignUp_entrer(Frame): 
     def __init__(self, master):
         Frame.__init__(self, master)
-        Label(self, text="Bienvenue parmis nous Monsieur...").pack(side="top", fill="x", pady=10)
+        global new_user
+        texte = "Bienvenue parmis nous " + new_user+ ' !'
+        Label(self, text=texte).pack(side="top", fill="x", pady=10)
        
         Button(self, text="Se faire conseiller une bière",
           command=lambda: master.switch_frame(Naiv_advice)).pack()
@@ -321,14 +323,18 @@ class Naiv_advice(Frame):
     def __init__(self, master):
         #COPIER COLLER BEER_ADVICE ET POSER U_INFOS = {} !!!
         Frame.__init__(self, master)
-        beers = "On appelle une fonction"
+        global Datas,Beers
+        Datas_train, Datas_test, Datas_item , Datas_user = Algo.preprocessing(Datas)
+        u_infos = {}
+        print(u_infos)
+        pred = Algo.reco_5_beers(u_infos,Datas_item,Beers)
         texte = "On vous conseille les bières suivantes :\n"
-        texte += "Duff\n"
-        texte += "Heineken\n"
+        for beer,note in pred:
+            texte += Beers[beer] +"\n"
         Label(self, text=texte).pack(side="top", fill="x", pady=10)
 
         Button(self, text="Entrer la note d'une bière",
-          command=lambda: master.switch_frame(new_user_note)).pack()
+          command=lambda: master.switch_frame(old_user_note)).pack()
         Button(self, text="Retour à l'accueil",
                   command=lambda: master.switch_frame(StartPage)).pack()
 
