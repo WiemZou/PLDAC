@@ -126,7 +126,7 @@ def prediction(i,u,Datas_train):
 #Bière la plus notée : '11757' avec 2444 avis
 #'csiewert' a noté 3 bières
 
-print(prediction('11757','csiewert',Datas_train))
+#print(prediction('11757','csiewert',Datas_train))
 Rev_overall=np.array([float(Datas[i][3]) for i in range(len(Datas))])
 def prediction_u_infos(i,u_infos,Datas_item,Beers):
     ri_moy = np.mean(np.array(list(Datas_item[i].values())))
@@ -148,27 +148,17 @@ u_infos={'Sausa Weizen':2.5,'Caldera Ginger Beer':1.5,'Amstel Light':3.3,'Founde
 
 
 def reco_5_beers(user_infos,Datas_item,Beers):
-    
-    if len(user_infos)==0:
-        return np.mean(Rev_overall)
-            
     pred=dict()
+    if len(user_infos)==0:
+        p = np.mean(Rev_overall)
+        for beer in Beers :
+            pred[beer] = p
+        pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)
+        return pred[:5]
+            
+    
     for beer in Beers:
         p=prediction_u_infos(beer,user_infos,Datas_item,Beers)
-        if p != -1:
-            pred[beer]=p
+        pred[beer]=p
     pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)#pred.items() change le dictionnaire en list de couple (key,value), ensuite on trie cette liste selon les notes.
     return pred[:5]
-
-
-
-
-
-
-
-
-
-
-
-
-
