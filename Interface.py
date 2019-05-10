@@ -16,27 +16,38 @@ global Datas
 Datas = np.array(Data_csv)
 
   
+
+
+
+def traitement(texte):
+    texte = texte.lower()
+    texte = texte.strip()
+    return texte
+    
 global Bd_Beers,Beers,Conversion
-Beers={Datas[i][-1]:Datas[i][10] for i in range(len(Datas)-1)}
-Conversion={Datas[i][10]:Datas[i][-1] for i in range(len(Datas)-1)}
-Bd_beers=[Datas[i][10] for i in range(len(Datas)-1)]
-Bd_beers=set(Bd_beers)
 
-#récuperation des utilisateurs
-Users_list=[Datas[i][6] for i in range(len(Datas))]
-global Bd_names 
+Beers = dict()
+Conversion = dict()
+Bd_beers = []
+Users_list = []
+
+for i in range(len(Datas)-1):
+    txt = traitement(Datas[i][10])
+    Beers[Datas[i][-1]] = txt
+    Conversion[txt] = Datas[i][-1]
+    Bd_beers.append(txt)
+    
+    txt = traitement(Datas[i][6])
+    Users_list.append(txt)
 Bd_names = set(Users_list)
-
-
-
-#Bd_names={'wiem','nabil'}
-#Bd_beers={'Duff','Heineken'}
+Bd_beers = set(Bd_beers)
 
 
 #on considere que l'utilisateur connait deja le nom des bieres
 global new_user,old_user
 new_user = ''
 old_user = ''
+
 
 def convert_user(u_infos):
     global Beers
@@ -160,6 +171,33 @@ class SignIn_entrer(Frame):
         Button(self, text="Retour à l'accueil",
                   command=lambda: master.switch_frame(StartPage)).pack()
 
+def maj_new(nom,note,new_beer):
+    global Datas,old_user,new_user,Bd_names,Bd_beers,Conversion,Beers
+    texte = "La note " + note + " a été atrribuée à la " + nom +"."
+    showinfo('Note saisie',texte)
+    old_user = new_user 
+    # Car l'old_user courant devient celui qui n'avait pas de note mais qui mtn en a une
+    #FAIRE MISE A JOUR DES NOTES !
+    Bd_names.add(new_user)
+#Quoi faire ? Changer la grande base "Datas" et refaire un preprocessing à chaque recommandation ?
+
+    tmp = list(Datas)
+    liste = ['' for i in range(13)]
+    tmp.append(liste)
+    Datas = np.array(tmp)
+    if nom in Conversion :
+        Datas[-1][-1] = Conversion[nom]
+    else :
+        Conversion[nom]=nom
+        Beers[nom]=nom
+        Datas[-1][-1] = nom
+    Datas[-1][6] = old_user
+    Datas[-1][3] = note
+    Datas = np.array(Datas)
+    if new_beer == True:
+        Bd_beers.add(nom)
+    return
+    
 class new_user_note(Frame): 
     def __init__(self, master):
         Frame.__init__(self, master)
@@ -172,7 +210,7 @@ class new_user_note(Frame):
         e1.pack()
         e1.focus_set()
         self.nom = e1
-        Label(self, text="Entrez la note de la bière").pack(side="top", fill="x", pady=10)
+        Label(self, text="Entrez la note de la bière entre 1 et 5 \n(Valeur décimale possible)").pack(side="top", fill="x", pady=10)
 
         value = StringVar(self)
         
@@ -187,61 +225,44 @@ class new_user_note(Frame):
         Button(self, text="Retour à l'accueil",
                   command=lambda: master.switch_frame(StartPage)).pack()
     def test(self,master):
-        nom = self.nom.get()
+        nom = traitement(self.nom.get())
         note = self.note.get()
         global Datas,old_user,new_user,Bd_names,Bd_beers,Conversion,Beers
         if nom in Bd_beers and float(note)<=5 and float(note)>=1:
-            texte = "La note " + note + " a été atrribuée à la " + nom +"."
-            showinfo('Note saisie',texte)
-            old_user = new_user 
-            # Car l'old_user courant devient celui qui n'avait pas de note mais qui mtn en a une
-            #FAIRE MISE A JOUR DES NOTES !
-            Bd_names.add(new_user)
-#Quoi faire ? Changer la grande base "Datas" et refaire un preprocessing à chaque recommandation ?
-
-            tmp = list(Datas)
-            liste = ['' for i in range(13)]
-            tmp.append(liste)
-            Datas = np.array(tmp)
-            if nom in Conversion :
-                Datas[-1][-1] = Conversion[nom]
-            else :
-                Conversion[nom]=nom
-                Beers[nom]=nom
-                Datas[-1][-1] = nom
-            Datas[-1][6] = old_user
-            Datas[-1][3] = note
-            Datas = np.array(Datas)
+            maj_new(nom,note,False)
             master.switch_frame(SignIn_entrer)
         elif not (float(note)<=5 and float(note)>=1):
             showinfo('Attention',"Veuillez noter la bière entre 1 et 5")
         else :
             if askyesno('Attention', "Vous êtes le premier à saisir une note pour cette bière, êtes vous certains de vouloir noter cette bière?'"):
-                #FAIRE MISE A JOUR DES NOTES !
-                old_user = new_user 
-                Bd_names.add(new_user)
-                Bd_beers.add(nom)
-                tmp = list(Datas)
-                liste = ['' for i in range(13)]
-                tmp.append(liste)
-                Datas = np.array(tmp)
-                if nom in Conversion :
-                    Datas[-1][-1] = Conversion[nom]
-                else :
-                    Conversion[nom]=nom
-                    Beers[nom]=nom
-                    Datas[-1][-1] = nom
-                Datas[-1][6] = old_user
-                Datas[-1][3] = note
-                Datas = np.array(Datas)
-                texte = "La note " + note + " a été atrribuée à la " + nom +"."
-                showinfo('Note saisie',texte)
+                maj_new(nom,note,True)
                 master.switch_frame(SignIn_entrer)
             else:
                 rien_faire = 1
 
         return
 
+def maj_old(nom,note,new_beer):
+    global Datas,old_user,Bd_beers,Conversion,Beers
+    texte = "La note " + note + " a été atrribuée à la " + nom +"."
+    showinfo('Note saisie',texte)
+    tmp = list(Datas)
+    liste = ['' for i in range(13)]
+    tmp.append(liste)
+    Datas = np.array(tmp)
+    if nom in Conversion :
+        Datas[-1][-1] = Conversion[nom]
+    else :
+        Conversion[nom]=nom
+        Beers[nom]=nom
+        Datas[-1][-1] = nom
+    Datas[-1][6] = old_user
+    Datas[-1][3] = note
+    Datas = np.array(Datas)
+    if new_beer == True:
+        Bd_beers.add(nom)
+    return
+        
 class old_user_note(Frame): 
     def __init__(self, master):
         Frame.__init__(self, master)
@@ -254,7 +275,7 @@ class old_user_note(Frame):
         e1.pack()
         e1.focus_set()
         self.nom = e1
-        Label(self, text="Entrez la note de la bière").pack(side="top", fill="x", pady=10)
+        Label(self, text="Entrez la note de la bière entre 1 et 5 \n (Valeur décimale possible)").pack(side="top", fill="x", pady=10)
 
         value = StringVar(self)
         
@@ -270,48 +291,17 @@ class old_user_note(Frame):
         Button(self, text="Retour à l'accueil",
                   command=lambda: master.switch_frame(StartPage)).pack()
     def test(self,master):
-        nom = self.nom.get()
+        nom = traitement(self.nom.get())
         note = self.note.get()
         global Datas,old_user,Bd_beers,Conversion,Beers
         if nom in Bd_beers and float(note)<=5 and float(note)>=1:
-            texte = "La note " + note + " a été atrribuée à la " + nom +"."
-            showinfo('Note saisie',texte)
-            tmp = list(Datas)
-            liste = ['' for i in range(13)]
-            tmp.append(liste)
-            Datas = np.array(tmp)
-            if nom in Conversion :
-                Datas[-1][-1] = Conversion[nom]
-            else :
-                Conversion[nom]=nom
-                Beers[nom]=nom
-                Datas[-1][-1] = nom
-            Datas[-1][6] = old_user
-            Datas[-1][3] = note
-            Datas = np.array(Datas)
+            maj_old(nom,note,False)
             master.switch_frame(SignIn_entrer)
         elif not (float(note)<=5 and float(note)>=1):
             showinfo('Attention',"Veuillez noter la bière entre 1 et 5")
         else :
             if askyesno('Titre 1', "Vous êtes le premier à saisir une note pour cette bière, êtes vous certains que vous vouliez noter cette bière?'"):
-                #FAIRE MISE A JOUR DES NOTES !
-                
-                Bd_beers.add(nom)
-                tmp = list(Datas)
-                liste = ['' for i in range(13)]
-                tmp.append(liste)
-                Datas = np.array(tmp)
-                if nom in Conversion :
-                    Datas[-1][-1] = Conversion[nom]
-                else :
-                    Conversion[nom]=nom
-                    Beers[nom]=nom
-                    Datas[-1][-1] = nom
-                Datas[-1][6] = old_user
-                Datas[-1][3] = note
-                Datas = np.array(Datas)
-                texte = "La note " + note + " a été atrribuée à la " + nom +"."
-                showinfo('Note saisie',texte)
+                maj_old(nom,note,True)
                 master.switch_frame(SignIn_entrer)
             else:
                 rien_faire = 1
@@ -326,12 +316,11 @@ class Naiv_advice(Frame):
         global Datas,Beers
         Datas_train, Datas_test, Datas_item , Datas_user = Algo.preprocessing(Datas)
         u_infos = {}
-        print(u_infos)
         pred = Algo.reco_5_beers(u_infos,Datas_item,Beers)
-        texte = "On vous conseille les bières suivantes :\n"
+        texte = "On vous recommande les bières suivantes :\n\n"
         for beer,note in pred:
-            beer = str(beer)
-            texte += Beers[beer] +"\n"
+            note = str(round(float(note)*20))
+            texte += Beers[beer] +"à "+note+"%\n\n"
         Label(self, text=texte).pack(side="top", fill="x", pady=10)
 
         Button(self, text="Entrer la note d'une bière",
@@ -345,11 +334,11 @@ class Beer_advice(Frame):
         global old_user,Datas,Beers
         Datas_train, Datas_test, Datas_item , Datas_user = Algo.preprocessing(Datas)
         u_infos = convert_user(Datas_user[old_user])
-        print(u_infos)
         pred = Algo.reco_5_beers(u_infos,Datas_item,Beers)
-        texte = "On vous conseille les bières suivantes :\n"
+        texte = "On vous recommande les bières suivantes :\n\n"
         for beer,note in pred:
-            texte += Beers[beer] +"\n"
+            note = str(round(float(note)*20))
+            texte += Beers[beer] +" à "+note+"%\n\n"
         Label(self, text=texte).pack(side="top", fill="x", pady=10)
 
         Button(self, text="Entrer la note d'une bière",
