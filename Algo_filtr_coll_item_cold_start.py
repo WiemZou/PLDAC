@@ -146,7 +146,16 @@ def prediction_u_infos(i,u_infos,Datas_item,Beers):
 #u_infos={'Sausa Weizen':2.5,'Caldera Ginger Beer':1.5,'Amstel Light':3.3}
 u_infos={'Sausa Weizen':2.5,'Caldera Ginger Beer':1.5,'Amstel Light':3.3,'Founders Breakfast Stout':2.1,'Pilsner Urquell Kvasnicový (Unfiltered Yeast Beer)':2,'Irie IPA':1.5}
 
-
+def select_pred(u_info,pred):
+    i=0
+    cpt=0
+    res = []
+    while cpt<5:
+        if Beers[pred[i][0]] not in u_infos:
+            res.append(pred[i])
+            cpt+=1
+        i+=1
+    return res
 def reco_5_beers(user_infos,Datas_item,Beers):
     pred=dict()
     if len(user_infos)==0:
@@ -161,4 +170,5 @@ def reco_5_beers(user_infos,Datas_item,Beers):
         p=prediction_u_infos(beer,user_infos,Datas_item,Beers)
         pred[beer]=p
     pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)#pred.items() change le dictionnaire en list de couple (key,value), ensuite on trie cette liste selon les notes.
-    return pred[:5]
+    return select_pred(user_infos,pred)
+
