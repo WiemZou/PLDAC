@@ -19,6 +19,7 @@ Users_list=[Datas[i][6] for i in range(len(Datas))]
 Users = list(set(Users_list))
 
 
+
 def preprocessing(Datas):
     Datas_user=dict()
     Datas_item=dict()
@@ -96,6 +97,22 @@ def calcul_similarite(i,j):
             prod_scal+=i[user]*j[user]
     return prod_scal/(norm_i*norm_j)
 
+def seuil_similarite(Datas_train):
+    s=0
+    l=[]
+    cpt = 0
+    for b1 in Datas_train:
+        for b2 in Datas_train:
+            sim=calcul_similarite(Datas_train[b1],Datas_train[b2])
+            if b1!=b2 and sim!=0:
+                s+=sim
+                l.append(sim)
+            else:
+                cpt += 1
+    return s/(len(Datas_train)**2-cpt),l
+
+#seuil_sim,l=seuil_similarite(Datas_train)
+seuil_sim=0.15706659755636954
 
 def prediction(i,u,Datas_train):
 
@@ -118,16 +135,27 @@ def prediction(i,u,Datas_train):
         if (j!=i):
             if u in Datas_train[j]: #cas ou l'utilisateur a noté l'item j
                 sim_ij = calcul_similarite(Datas_train[i],Datas_train[j])
-                riu += sim_ij*(Datas_train[j][u]-ri_moy)
-                sim_abs += abs(sim_ij)
-                                  
+                print(j)
+                if sim_ij >=seuil_sim:
+                    print('je rentre', j)
+                    riu += sim_ij*(Datas_train[j][u]-ri_moy)
+                    sim_abs += abs(sim_ij)
+    #ajouté
+    if sim_abs==0: #cas ou user pas assez similaire (cold start)
+        if len(Datas_item[i])==1:
+            Rev_overall=np.array([Datas_train[k][v] for k in Datas_train for v in Datas_train[k]])
+            return np.mean(Rev_overall)
+        else:
+            ri_moy = np.mean(np.array(list(Datas_train[i].values())))
+            return ri_moy                              
     return ri_moy + riu/sim_abs
             
 #Bière la plus notée : '11757' avec 2444 avis
 #'csiewert' a noté 3 bières
 
 #print(prediction('11757','csiewert',Datas_train))
-Rev_overall=np.array([float(Datas[i][3]) for i in range(len(Datas))])
+
+
 def prediction_u_infos(i,u_infos,Datas_item,Beers):
     ri_moy = np.mean(np.array(list(Datas_item[i].values())))
     riu = 0
@@ -136,10 +164,17 @@ def prediction_u_infos(i,u_infos,Datas_item,Beers):
         k=list(Beers.keys())[list(Beers.values()).index(v)]
         if (k!=i):
             sim_ij = calcul_similarite(Datas_item[i],Datas_item[k])
-            riu += sim_ij*(u_infos[v]-ri_moy)
-            sim_abs += abs(sim_ij)
+            
+            if sim_ij >=seuil_sim:
+                riu += sim_ij*(u_infos[v]-ri_moy)
+                sim_abs += abs(sim_ij)
     if sim_abs == 0:
-        return np.mean(Rev_overall)
+        if len(Datas_item[i])==1:
+            Rev_overall=np.array([float(Datas[i][3]) for i in range(len(Datas))])
+            return np.mean(Rev_overall)
+        else:
+            ri_moy = np.mean(np.array(list(Datas_item[i].values())))
+            return ri_moy                
     return ri_moy + riu/sim_abs   
 
  
@@ -156,8 +191,10 @@ def select_pred(u_info,pred):
             cpt+=1
         i+=1
     return res
+
 def reco_5_beers(user_infos,Datas_item,Beers):
     pred=dict()
+    Rev_overall=np.array([float(Datas[i][3]) for i in range(len(Datas))])
     if len(user_infos)==0:
         p = np.mean(Rev_overall)
         for beer in Beers :
@@ -171,4 +208,3 @@ def reco_5_beers(user_infos,Datas_item,Beers):
         pred[beer]=p
     pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)#pred.items() change le dictionnaire en list de couple (key,value), ensuite on trie cette liste selon les notes.
     return select_pred(user_infos,pred)
-
