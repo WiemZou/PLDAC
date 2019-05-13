@@ -5,6 +5,7 @@ from tkinter.messagebox import *
 import numpy as np
 import csv
 import Algo_filtr_coll_item_cold_start as Algo
+from PIL import Image, ImageTk
 
 Data_csv=[]
 f=open("beer_reviews.csv")
@@ -78,7 +79,9 @@ def print_name(event):
 class StartPage(Frame):
     def __init__(self, master):
         Frame.__init__(self, master)
-        Label(self, text='Bienvenue chez Beerzon !',fg='green').pack(side="top", fill="x", pady=10)
+#        load = Image.open("BeerFlix.jpg") https://pythonbasics.org/tkinter-image/
+#        render = ImageTk.PhotoImage(load)
+        Label(self, text='Bienvenue chez Beerflix !',fg='red').pack(side="top", fill="x", pady=10)
         Button(self, text="Sign in",
                   command=lambda: master.switch_frame(SignIn)).pack()
         Button(self, text="Sign up",
@@ -320,7 +323,7 @@ class Naiv_advice(Frame):
         texte = "On vous recommande les bières suivantes :\n\n"
         for beer,note in pred:
             note = str(round(float(note)*20))
-            texte += Beers[beer] +"à "+note+"%\n\n"
+            texte += Beers[beer].capitalize() +" à "+note+"%\n\n"
         Label(self, text=texte).pack(side="top", fill="x", pady=10)
 
         Button(self, text="Entrer la note d'une bière",
@@ -338,7 +341,7 @@ class Beer_advice(Frame):
         texte = "On vous recommande les bières suivantes :\n\n"
         for beer,note in pred:
             note = str(round(float(note)*20))
-            texte += Beers[beer] +" à "+note+"%\n\n"
+            texte += Beers[beer].capitalize() +" à "+note+"%\n\n"
         Label(self, text=texte).pack(side="top", fill="x", pady=10)
 
         Button(self, text="Entrer la note d'une bière",
