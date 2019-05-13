@@ -1,6 +1,6 @@
 import numpy as np
 import csv
-import Algo_filtr_coll_item as Algo
+import Algo_filtr_coll_item_naif as Algo
 
 Data_csv=[]
 f=open("beer_reviews.csv")
@@ -22,13 +22,13 @@ Users = list(set(Users_list))
 
 
 
-Datas_train, Datas_test, Datas_item = Algo.preprocessing(Datas)
+Datas_train, Datas_test, Datas_item, Datas_user = Algo.preprocessing(Datas)
 
 def notes_predites(Datas_train,Datas_test):
     res = []
     for u in Datas_test :
         item = list(Datas_test[u].keys())[0]
-        pred = Algo.prediction(item,u,Datas_item)
+        pred = Algo.prediction_naive(item,u,Datas_item)
         res.append((Datas_test[u][item],pred))
     return res
 
@@ -42,4 +42,4 @@ def mse(list_tuples):
     return mse/len(list_tuples)
         
 tuples = [(1,1.5),(4,3.8),(3.5,3.9)]
-print("Mean square error (sans cold start): ",mse(list_tuples))
+print("Mean square error (naif): ",mse(list_tuples))
