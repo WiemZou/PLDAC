@@ -47,38 +47,9 @@ def preprocessing(Datas):
     
     
     Datas_train = dict()
-    Datas_test = dict()
+    Datas_test = dict()           
 
-    
-    for user in Datas_user:
-        beers=Datas_user[user]
-        if len(Datas_user[user])>1 :
-            i=0
-            keys=list(beers.keys())
-            find=False
-            while i<len(beers) and not find: #verifie que biere est notée par plus d'une personne
-                if len(Datas_item[keys[i]])>1:
-                    find=True
-                i+=1
-            if find :
-                Datas_test[user]={keys[i-1]:beers[keys[i-1]]}
-                for j in range(len(beers)):
-                    if j!=(i-1):
-                        if keys[j] not in Datas_train:
-                            Datas_train[keys[j]]=dict()
-                        Datas_train[keys[j]][user]=Datas_item[keys[j]][user]
-            else : #aucune biere notee plus de deux fois : on met la premiere
-                Datas_test[user]={keys[0]:beers[keys[0]]}
-                for j in range(1,len(beers)):
-                        if keys[j] not in Datas_train:
-                            Datas_train[keys[j]]=dict()
-                        Datas_train[keys[j]][user]=Datas_item[keys[j]][user]
-                        
-        if len(Datas_user[user])==1 :
-            keys=list(beers.keys())
-            Datas_test[user]={keys[0]:beers[keys[0]]}                
-
-    return Datas_train, Datas_test, Datas_item, Datas_user
+    return  Datas_item, Datas_user
 
 #Sign up
 #Nabil
@@ -86,8 +57,9 @@ def preprocessing(Datas):
 #Datas.append(['' for i in range(11)])
 #Datas[-1][-1] = id_be
 
-Datas_train, Datas_test, Datas_item, Datas_user = preprocessing(Datas)
+Datas_item, Datas_user = preprocessing(Datas)
 
+   
 def calcul_similarite(i,j):
     prod_scal=0
     norm_i=np.linalg.norm(np.array(list(i.values())),ord=2)
@@ -98,28 +70,56 @@ def calcul_similarite(i,j):
     return prod_scal/(norm_i*norm_j)
 
 
+fichier = open("similarites.txt","r")
+global Similarites
+Similarites = dict()
+for ligne in fichier:
+    b1,b2,sim = ligne.split(',')
+    sim = float(sim.split('\n')[0])
+    if b1 not in Similarites:
+        Similarites[b1]=dict()
+    Similarites[b1][b2]=sim
+fichier.close()
 
+def maj_similarites(l,tab,Beers): #tab=Datas_item
+    global Similarites
+    for item in l:
+        if item not in Similarites:#nouvel item
+            Similarites[item]=dict()
+        for b in Beers:
+            sim=calcul_similarite(tab[item],tab[b])
+            Similarites[item][b]=sim
+            if b in Similarites:
+                Similarites[b][item]=sim
 
+            
 def seuil_similarite(Datas_train):
     s=0
     l=[]
     cpt = 0
     for b1 in Datas_train:
         for b2 in Datas_train:
-            sim=calcul_similarite(Datas_train[b1],Datas_train[b2])
-            if b1!=b2 and sim!=0:
-                s+=sim
-                l.append(sim)
+            if b1!=b2 :
+                sim=Similarites[b1][b2]
+                if sim!=0:
+                    s+=sim
+                    l.append(sim)
+                else:cpt+=1
             else:
                 cpt += 1
     return s/(len(Datas_train)**2-cpt),l
 
 #seuil_sim,l=seuil_similarite(Datas_train)
-seuil_sim=0.15706659755636954
-   
+seuil_sim=0.1565987066635957
+
+def new_calcul_sim(Datas_item,b1):
+    for b2 in Datas_item:
+        Similarites[b1][b2]=calcul_similarite(Datas_item[b1],Datas_item[b2])
+        
+    return
 
 def prediction(i,u,Datas_train):
-
+    global Similarites
     if len(Datas_user[u])==1:
         if len(Datas_item[i])==1:
             Rev_overall=np.array([Datas_train[k][v] for k in Datas_train for v in Datas_train[k]])
@@ -138,10 +138,8 @@ def prediction(i,u,Datas_train):
     for j in Datas_train: #parcourt tous les items
         if (j!=i):
             if u in Datas_train[j]: #cas ou l'utilisateur a noté l'item j
-                sim_ij = calcul_similarite(Datas_train[i],Datas_train[j])
-                print(j)
+                sim_ij = Similarites[i][j]
                 if sim_ij >=seuil_sim:
-                    print('je rentre', j)
                     riu += sim_ij*(Datas_train[j][u]-ri_moy)
                     sim_abs += abs(sim_ij)
     #ajouté
@@ -161,13 +159,14 @@ def prediction(i,u,Datas_train):
 
 
 def prediction_u_infos(i,u_infos,Datas_item,Beers):
+    global Similarites
     ri_moy = np.mean(np.array(list(Datas_item[i].values())))
     riu = 0
     sim_abs = 0
     for v in u_infos:
         k=list(Beers.keys())[list(Beers.values()).index(v)]
         if (k!=i):
-            sim_ij = calcul_similarite(Datas_item[i],Datas_item[k])
+            sim_ij = Similarites[i][k]
             
             if sim_ij >=seuil_sim:
                 riu += sim_ij*(u_infos[v]-ri_moy)
@@ -185,31 +184,35 @@ def prediction_u_infos(i,u_infos,Datas_item,Beers):
 #u_infos={'Sausa Weizen':2.5,'Caldera Ginger Beer':1.5,'Amstel Light':3.3}
 u_infos={'Sausa Weizen':2.5,'Caldera Ginger Beer':1.5,'Amstel Light':3.3,'Founders Breakfast Stout':2.1,'Pilsner Urquell Kvasnicový (Unfiltered Yeast Beer)':2,'Irie IPA':1.5}
 
-def select_pred(u_info,pred):
+def select_pred(u_info,pred,Beers):
     i=0
     cpt=0
     res = []
     while cpt<5:
-        if Beers[pred[i][0]] not in u_infos:
+        if Beers[pred[i][0]] not in u_info:
             res.append(pred[i])
             cpt+=1
         i+=1
     return res
 
+
 def reco_5_beers(user_infos,Datas_item,Beers):
+    import time
     pred=dict()
     if len(user_infos)==0:
         for beer in Beers:
-            if len(Datas_item[beer])>500 :#Il faut que la bière ait été noté bcp de fois pour qu'on la prenne en compte.
-                p=np.mean(np.array([Datas_train[beer][v] for v in Datas_train[beer]]))
+            if len(Datas_item[beer])>500 :
+                p=np.mean(np.array([Datas_item[beer][v] for v in Datas_item[beer]]))
                 pred[beer]=p
             else:
                 pred[beer]=1
         pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)
         return pred[:5]
-              
+            
+    times = []
     for beer in Beers:
         p=prediction_u_infos(beer,user_infos,Datas_item,Beers)
         pred[beer]=p
+
     pred=sorted(pred.items(), key= lambda x:x[1],reverse=True)#pred.items() change le dictionnaire en list de couple (key,value), ensuite on trie cette liste selon les notes.
-    return select_pred(user_infos,pred)
+    return select_pred(user_infos,pred,Beers)
