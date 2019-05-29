@@ -97,7 +97,7 @@ class SignIn(Frame): #utilisateur existant
     def __init__(self, master):
         Frame.__init__(self, master)
         self.title="Beerzon"
-        Label(self, text="Entrez votre nom d'utilisateur").pack(side="top", fill="x", pady=10)
+        Label(self, text="Entrez votre nom d'utilisateur-trice").pack(side="top", fill="x", pady=10)
 
         value = StringVar(self)
         
@@ -116,7 +116,7 @@ class SignIn(Frame): #utilisateur existant
         nom = self.nom.get()
         global Bd_names,old_user
         if nom not in Bd_names:
-            showinfo('Attention',"Ce nom d'utilisateur n'existe pas. Si vous n'êtes pas enregistré veuillez cliquer sur SignUp.")
+            showinfo('Attention',"Ce nom d'utilisateur n'existe pas. Si vous n'êtes pas enregistré veuillez cliquer sur SignUp pour créer un compte.")
 
         else :
             old_user = nom
@@ -126,7 +126,7 @@ class SignUp(Frame): #nouvel utilisateur
     def __init__(self, master):
         Frame.__init__(self, master)
         self.title="Beerzon"
-        Label(self, text="Entrez un nom d'utilisateur \n").pack(side="top", fill="x", pady=10)
+        Label(self, text="Entrez un nom d'utilisateur-trice \n").pack(side="top", fill="x", pady=10)
 
         value = StringVar(self)
         
@@ -145,7 +145,7 @@ class SignUp(Frame): #nouvel utilisateur
         nom = self.nom.get()
         global Bd_names,new_user
         if nom in Bd_names:
-            showinfo('Attention',"Ce nom d'utilisateur existe déjà !")
+            showinfo('Attention',"Ce nom d'utilisateur-trice existe déjà !")
 
         else :
 
@@ -224,7 +224,7 @@ class new_user_note(Frame):
         e1.pack()
         e1.focus_set()
         self.nom = e1
-        Label(self, text="Entrez la note de la bière entre 1 et 5 \n(Valeur décimale possible)").pack(side="top", fill="x", pady=10)
+        Label(self, text="Veuillez entrer la note de la bière entre 1 et 5 \n(Valeurs décimales possibles séparées par un '.')").pack(side="top", fill="x", pady=10)
 
         value = StringVar(self)
         
@@ -248,7 +248,7 @@ class new_user_note(Frame):
         elif not (float(note)<=5 and float(note)>=1):
             showinfo('Attention',"Veuillez noter la bière entre 1 et 5")
         else :
-            if askyesno('Attention', "Vous êtes le premier à saisir une note pour cette bière, êtes vous certains de vouloir noter cette bière?'"):
+            if askyesno('Attention', "Vous êtes le premier à saisir une note pour cette bière, êtes vous certain-e de vouloir noter cette bière?'"):
                 maj_new(nom,note,True)
                 master.switch_frame(SignIn_entrer)
             else:
@@ -319,7 +319,7 @@ class old_user_note(Frame):
         elif not (float(note)<=5 and float(note)>=1):
             showinfo('Attention',"Veuillez noter la bière entre 1 et 5")
         else :
-            if askyesno('Titre 1', "Vous êtes le premier à saisir une note pour cette bière, êtes vous certains que vous vouliez noter cette bière?'"):
+            if askyesno('Titre 1', "Vous êtes le-la premier-ère à saisir une note pour cette bière, êtes vous certain-e de vouloir noter cette bière ?'"):
                 maj_old(nom,note,True)
                 master.switch_frame(SignIn_entrer)
             else:
